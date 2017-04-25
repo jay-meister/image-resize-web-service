@@ -10,7 +10,6 @@
   "license": "ISC",
   "dependencies": {
     "jimp": "^0.2.27",
-    "jmp": "^0.7.5",
     "mime-types": "^2.1.15"
   }
 }
