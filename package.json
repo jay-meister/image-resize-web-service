@@ -1,0 +1,16 @@
+{
+  "name": "tech-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "jimp": "^0.2.27",
+    "jmp": "^0.7.5",
+    "mime-types": "^2.1.15"
+  }
+}
