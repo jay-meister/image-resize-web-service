@@ -27,33 +27,50 @@ http.createServer((req, res) => {
   var ext = path.extname(image_url)
   var hashed_filename = create_filename(image_url, ext)
 
+  // if image has already been downloaded
+  if (fs.existsSync(hashed_filename)) {
+      return resize_image(hashed_filename, width, height, (err, resized_filename) => {
+        if (err) { return res.end('Error') }
+        var headers = create_headers(hashed_filename)
+        res.writeHead(200, headers)
+        var read = fs.createReadStream(resized_filename)
+         return read.pipe(res)
+      })
+  }
 
+  // if image has not yet been downloaded
   http.get(image_url, (image_res) => {
     // store the image
     var download_file = fs.createWriteStream(hashed_filename)
     // pipe image download to new file
     image_res.pipe(download_file)
     image_res.on('end', () => {
-      // image_res.setEncoding('binary')
-      var headers = create_headers(hashed_filename)
-      var resized_filename = 'resized-' + hashed_filename
 
-      res.writeHead(200, headers)
-
-      // Read the image, resize and write to file system
-      jimp.read(hashed_filename, (err, resizable) => {
-        resizable
-          .resize(+width || jimp.AUTO, +height || jimp.AUTO)
-          .write(resized_filename)
-
+      resize_image(hashed_filename, width, height, (err, resized_filename) => {
+        if (err) { return res.end('Error') }
+        var headers = create_headers(hashed_filename)
+        res.writeHead(200, headers)
         var read = fs.createReadStream(resized_filename)
-        read.pipe(res)
+        return read.pipe(res)
       })
     })
   })
 }).listen(1337)
 console.log('Server running at http://127.0.0.1:1337/')
 
+
+var resize_image = (filename, width, height, cb) => {
+  var resized_filename = 'resized-' + filename
+  // Read the image, resize and write to file system
+  jimp.read(filename, (err, resizable) => {
+    if (err) { return cb(err, null) }
+    resizable
+      .resize(+width || jimp.AUTO, +height || jimp.AUTO)
+      .write(resized_filename)
+
+      return cb(null, resized_filename)
+  })
+}
 
 var crypto = require('crypto');
 var create_filename = (url, ext) => crypto.createHash('md5').update(url).digest('hex') + ext
